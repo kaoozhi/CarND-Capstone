@@ -1,6 +1,7 @@
 *.py[cod]
-
+ros/src/tl_detector/light_classification/mobilenet
+ros/src/tl_detector/light_classification/ssd_inception_v1
 build
 devel
-
+imgs
 profile.tmp

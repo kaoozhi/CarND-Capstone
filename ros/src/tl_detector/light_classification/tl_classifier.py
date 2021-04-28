@@ -16,7 +16,8 @@ class TLClassifier(object):
         # Set pathes
         basepath = os.path.dirname(os.path.abspath(__file__))
         # path_to_model = os.path.join(basepath, 'ssd_mobilenet_v1')
-        path_to_model = os.path.join(basepath, 'frozen_graph_v5')
+        # path_to_model = os.path.join(basepath, 'ssd_inception_v1')
+        path_to_model = os.path.join(basepath, 'faster_rcnn_inception')
         path_to_graph = os.path.join(path_to_model, 'frozen_inference_graph.pb')
         path_to_labels = os.path.join(path_to_model, 'label_map.pbtxt')
 

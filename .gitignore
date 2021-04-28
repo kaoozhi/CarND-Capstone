@@ -1,6 +1,12 @@
 *.py[cod]
 ros/src/tl_detector/light_classification/mobilenet
-ros/src/tl_detector/light_classification/ssd_inception_v1
+ros/src/tl_detector/light_classification/ssd_inception_v1/*
+!ros/src/tl_detector/light_classification/ssd_inception_v1/frozen_inference_graph.pb
+ros/src/tl_detector/light_classification/faster_rcnn_inception/*
+!ros/src/tl_detector/light_classification/faster_rcnn_inception/frozen_inference_graph.pb
+
+ros/src/tl_detector/light_classification/ssd_mobilenet_v1/*
+!ros/src/tl_detector/light_classification/ssd_mobilenet_v1/frozen_inference_graph.pb
 build
 devel
 imgs

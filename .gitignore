@@ -4,9 +4,13 @@ ros/src/tl_detector/light_classification/ssd_inception_v1/*
 !ros/src/tl_detector/light_classification/ssd_inception_v1/frozen_inference_graph.pb
 ros/src/tl_detector/light_classification/faster_rcnn_inception/*
 !ros/src/tl_detector/light_classification/faster_rcnn_inception/frozen_inference_graph.pb
-
+ros/src/tl_detector/light_classification/ssd_inception_v2_512/*
+!ros/src/tl_detector/light_classification/ssd_inception_v2_512/frozen_inference_graph.pb
 ros/src/tl_detector/light_classification/ssd_mobilenet_v1/*
 !ros/src/tl_detector/light_classification/ssd_mobilenet_v1/frozen_inference_graph.pb
+ros/src/tl_detector/light_classification/ssd_mobilenet_300/*
+!ros/src/tl_detector/light_classification/ssd_mobilenet_300/frozen_inference_graph.pb
+ros/src/tl_detector/light_classification/ssd_mobilenet_newdata/
 build
 devel
 imgs

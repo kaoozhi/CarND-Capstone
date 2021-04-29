@@ -15,14 +15,16 @@ class TLClassifier(object):
         #TODO load classifier
         # Set pathes
         basepath = os.path.dirname(os.path.abspath(__file__))
-        # path_to_model = os.path.join(basepath, 'ssd_mobilenet_v1')
-        # path_to_model = os.path.join(basepath, 'ssd_inception_v1')
-        path_to_model = os.path.join(basepath, 'faster_rcnn_inception')
+        # path_to_model = os.path.join(basepath, 'ssd_mobilenet_300')
+        # path_to_model = os.path.join(basepath, 'ssd_mobilenet_newdata')
+        path_to_model = os.path.join(basepath, 'ssd_inception_v2_512')
+        # path_to_model = os.path.join(basepath, 'faster_rcnn_inception')
+        # path_to_model = os.path.join(basepath, 'frozen_graph_v6')
         path_to_graph = os.path.join(path_to_model, 'frozen_inference_graph.pb')
         path_to_labels = os.path.join(path_to_model, 'label_map.pbtxt')
+        
+        self.detection_graph = self.load_graph(path_to_graph)
 
-        self.detection_graph = tf.get_default_graph()
-        self.load_graph(path_to_graph)
         # NUM_CLASSES =4
         # label_map = label_map_util.load_labelmap(path_to_labels)
         # categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
@@ -30,14 +32,14 @@ class TLClassifier(object):
             
     def load_graph(self, graph_file):
         """Loads a frozen inference graph"""
-        # graph = tf.Graph()
-        with self.detection_graph.as_default():
+        graph = tf.Graph()
+        with graph.as_default():
             od_graph_def = tf.GraphDef()
             with tf.gfile.GFile(graph_file, 'rb') as fid:
                 serialized_graph = fid.read()
                 od_graph_def.ParseFromString(serialized_graph)
                 tf.import_graph_def(od_graph_def, name='')
-        # return graph
+        return graph
 
     def get_classification(self, image):
         """Determines the color of the traffic light in the image
@@ -73,11 +75,19 @@ class TLClassifier(object):
                     feed_dict={image_tensor: image_expanded})
 
                 max_idx = np.argmax(scores[0])
-                # class_pred = classes[0][max_idx]
+                max_score = np.max(scores[0])
+                class_pred_single = classes[0][max_idx]
                 # rospy.loginfo("predicted classes", classes[0])
                 # print(classes[0])
                 # print(scores[0])
-                candidate_classes = classes[0][scores[0]>0.3]
+                candidate_classes = classes[0][scores[0]>0.1]
+
+                if len(candidate_classes)==0:
+                    if max_score>=0.01:
+                        candidate_classes = classes[0][scores[0]>=0.01]
+                    else:
+                        return TrafficLight.UNKNOWN
+
                 # print(class_candidate)
                 nb_red = sum(candidate_classes == 1.)
                 nb_green = sum(candidate_classes == 2.)
@@ -87,9 +97,7 @@ class TLClassifier(object):
                 class_pred = np.argmax(nb_classes)
                 # if scores[0][max_idx]>=0.02:
                     # categories[max_idx]['name']
-                if len(candidate_classes)==0:
-                    return TrafficLight.UNKNOWN
-                elif class_pred == 0:
+                if class_pred == 0:
                     return TrafficLight.RED
                 elif class_pred == 1:
                     return TrafficLight.GREEN

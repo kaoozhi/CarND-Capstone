@@ -51,7 +51,6 @@ class WaypointUpdater(object):
 
         # TODO: Add other member variables you need below
 
-
         self.loop()
 
         # rospy.spin()
@@ -62,7 +61,7 @@ class WaypointUpdater(object):
         self.pose = msg
     
     def loop(self):
-        rate = rospy.Rate(30)
+        rate = rospy.Rate(35)
         while not rospy.is_shutdown():
             if self.pose and self.base_waypoints:
                 # closet_waypoint_idx = self.get_closest_waypoint_idx()
@@ -90,16 +89,6 @@ class WaypointUpdater(object):
     
     def publish_waypoints(self):
         lane = self.create_lane()
-        # if self.red_light_wp <= closest_idx + LOOKAHEAD_WPS:
-
-        # closest_wp_vel = self.get_waypoint_velocity(self.base_waypoints.waypoints[closest_idx])
-
-        # for i in range(LOOKAHEAD_WPS):
-
-        #     target_vel = closest_wp_vel + 
-        #     self.set_waypoint_velocity(self, lane.waypoints, i, velocity)
-        # rospy.loginfo("red_light_wp" + str(self.red_light_wp))
-
         self.final_waypoints_pub.publish(lane)
 
     def create_lane(self):
@@ -114,31 +103,10 @@ class WaypointUpdater(object):
         else:
             lane.waypoints = self.decelerate_wp(waypoints, closest_idx)
             # lane.waypoints = waypoints
-        
-        # print("red_wp" + str(self.red_light_wp))
-            
+                    
         return lane
 
     def decelerate_wp(self, waypoints, closest_idx):
-        
-        # end_idx = max(self.red_light_wp - closest_idx -2, 0)
-        # vel = 0.0
-        # final_wps = waypoints
-        # base_vel = final_wps[end_idx].twist.twist.linear.x
-        # i = end_idx-1
-        
-        # while vel<=base_vel and i >=0:
-        #     end_idx = max(self.red_light_wp - closest_idx -2, 0)
-        #     dist = self.distance(waypoints,i,end_idx)
-        #     base_vel = waypoints[i].twist.twist.linear.x
-        #     vel = math.sqrt(2*MAX_DECEL*dist)
-        #     if vel<1.:
-        #         vel = 0.
-            
-        #     final_wps[i].twist.twist.linear.x = vel
-        #     i-=1
-
-        # print("first wp to decelerate" + str(i))
 
         final_wps =[]
         for i, wp in enumerate(waypoints):
@@ -166,9 +134,7 @@ class WaypointUpdater(object):
         # TODO: Callback for /traffic_waypoint message. Implement
         # pass
         self.red_light_wp = msg.data
-        # print(self.red_light_wp)
-
-
+        
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
         pass

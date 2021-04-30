@@ -13,8 +13,9 @@ import yaml
 from scipy.spatial import KDTree
 import numpy as np
 
-STATE_COUNT_THRESHOLD = 3
-LOOKAHEAD_WPS = 100 # Number of waypoints we will publish. You can change this number
+STATE_COUNT_THRESHOLD = 2
+TL_LOOKAHEAD_WPS = 100 # Traffic light dectector will only be activated within the look ahead distance to reduce simulator lagging
+LIGHT_STATE_MAP = {0:'Red', 1:'Yellow', 2: 'Green'}
 
 
 class TLDetector(object):
@@ -25,7 +26,7 @@ class TLDetector(object):
         self.waypoints = None
         self.camera_image = None
         self.lights = []
-        self.img_count = 851
+        # self.img_count = 851
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -80,14 +81,10 @@ class TLDetector(object):
         self.camera_image = msg
         light_wp, state = self.process_traffic_lights()
 
-        # # # Code to collect camera images for training
-        car_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
-        if self.has_image and (light_wp > car_wp_idx + LOOKAHEAD_WPS):
-            # self.save_image(state)
-            # light_wp, state = self.process_traffic_lights()
-        # else:
-            light_wp = -1
-
+        # # Code to collect camera images for training
+        # car_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
+        # if self.has_image and (light_wp > car_wp_idx + TL_LOOKAHEAD_WPS):
+        #     # self.save_image(state)
 
         '''
         Publish upcoming red lights at camera frequency.
@@ -100,13 +97,12 @@ class TLDetector(object):
             self.state = state
         elif self.state_count >= STATE_COUNT_THRESHOLD:
             self.last_state = self.state
-            light_wp = light_wp if state == TrafficLight.RED else -1
+            light_wp = light_wp if ((state == TrafficLight.RED) or (state == TrafficLight.Yellow)) else -1
             self.last_wp = light_wp
             self.upcoming_red_light_pub.publish(Int32(light_wp))
         else:
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
-        # print("state" + str(self.state))
 
     def get_closest_waypoint(self, x, y):
         """Identifies the closest path waypoint to the given position
@@ -118,8 +114,7 @@ class TLDetector(object):
             int: index of the closest waypoint in self.waypoints
 
         """
-        # x = pose.position.x
-        # y = pose.position.y
+
         closest_idx = self.waypoints_tree.query([x,y],1)[1]
         closest_coord = self.waypoints_2d[closest_idx]
         prev_coord = self.waypoints_2d[closest_idx-1]
@@ -150,18 +145,19 @@ class TLDetector(object):
             return False
 
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
-        # self.img_count +=1
-
-        # image_name = str(self.image_count)
-
         #Get classification
         state = self.light_classifier.get_classification(cv_image)
-        rospy.loginfo("neural network state %d, ground truth state %d", state, light.state)
-        # rospy.loginfo("ground truth state %d", )
-        # return light.state
+        if state==TrafficLight.UNKNOWN:
+            rospy.loginfo("Unknown traffic light state")
+            return state
+        state_msg = LIGHT_STATE_MAP[state]
+        rospy.loginfo("Traffic light ahead visible, detected state: %s", state_msg)
         return state
-    def save_image(self, state):
 
+
+    def save_image(self, state):
+        """Collect training dataset for traffic light dectoctor
+        """
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
         self.img_count +=1
         image_name = 'img_'+ str(self.img_count) +'.png'
@@ -190,7 +186,8 @@ class TLDetector(object):
         stop_line_positions = self.config['stop_line_positions']
         if(self.pose):
             car_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
-            diff_min = len(self.waypoints.waypoints)
+            # diff_min = len(self.waypoints.waypoints)
+            diff_min = TL_LOOKAHEAD_WPS 
             for i, stop_line_position in enumerate(stop_line_positions): 
                 temp_idx = self.get_closest_waypoint(stop_line_position[0], stop_line_position[1])
                 diff = temp_idx - car_wp_idx
@@ -202,8 +199,11 @@ class TLDetector(object):
         if closest_light:
             state = self.get_light_state(closest_light)
             return light_wp, state
+        rospy.loginfo("No visible Traffic light ahead")
         self.waypoints = None
         return -1, TrafficLight.UNKNOWN
+
+    
 
 if __name__ == '__main__':
     try:

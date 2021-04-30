@@ -22,14 +22,14 @@ class TLClassifier(object):
         
         self.detection_graph = self.load_graph(path_to_graph)
         self.tf_config = tf.ConfigProto()
-        # self.tf_config.gpu_options.allow_growth = True
+        self.tf_config.gpu_options.allow_growth = True
         self.sess = tf.Session(graph=self.detection_graph, config=self.tf_config)
         # Run artificial random image to warm up TensorFlow's memory allocator
         warmup_iter = 10
         for iter in range(warmup_iter):
             synth_data = np.random.randint(low=0, high=255, size=(600, 800, 3), dtype=np.uint8)
             self.inference(synth_data)
-        rospy.loginfo("Traffic Light detector initialized")
+        rospy.loginfo("Traffic light detector initialized")
             
     def load_graph(self, graph_file):
         """Loads a frozen inference graph"""

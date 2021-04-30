@@ -33,6 +33,9 @@ docker run -p 4567:4567 -v $PWD:/capstone -v /tmp/log:/root/.ros/ --rm -it capst
 ### Port Forwarding
 To set up port forwarding, please refer to the "uWebSocketIO Starter Guide" found in the classroom (see Extended Kalman Filter Project lesson).
 
+### Traffic light detector
+A traffic light detector based on a object detection neural network model has been implemented to make autonomous car detect traffic light state at intersections, details can be found in this [repo](https://github.com/kaoozhi/CarND-Capstone-Traffic-light-classifier)
+
 ### Usage
 
 1. Clone the project repository
